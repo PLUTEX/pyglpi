@@ -127,9 +127,13 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     params = dict(build_search(criteria))
     params.update(kwargs)
     result = glpi.search(itemtype).GET(params=params)
+    prefix_re = re.compile(r'^[^\.]+\.')
     for r in result.ranges:
         for it in r.json()['data']:
-            yield {search_options[k]['uid']: v for k, v in it.items()}
+            yield {
+                prefix_re.sub('', search_options.get(k, {}).get('uid', k)): v
+                for k, v in it.items()
+            }
 
 
 class GLPI(Hammock):
