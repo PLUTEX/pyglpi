@@ -1,4 +1,5 @@
 import re
+from base64 import b64encode
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
 import requests
@@ -147,12 +148,18 @@ class GLPI(Hammock):
     ...     computers.extend(r.json())
     """
 
-    def __init__(self, url, app_token, auth):
+    def __init__(self, url, app_token, user_token=None, credentials=None):
         super().__init__(url, headers={
             'App-Token': app_token,
             'Content-Type': 'application/json',
         })
 
+        if credentials:
+            self._login('Basic %s' % b64encode(':'.join(credentials)))
+        elif user_token:
+            self._login('user_token %s' % user_token)
+
+    def _login(self, auth):
         r = self.initSession.GET(headers={'Authorization': auth})
         if r.status_code != requests.codes.ok:
             raise GlpiInvalidArgument('Authentication failed: %s' % r.text)
