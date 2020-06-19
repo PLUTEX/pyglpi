@@ -49,6 +49,9 @@ def _resolve_fields(criteria, rev):
     """
     Internal function used by resolve_fields
     """
+    if criteria is "":
+        return criteria
+
     try:
         return [
             {
