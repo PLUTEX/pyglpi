@@ -41,7 +41,6 @@ def rangeiter(r):
         args = parse_qs(url.query)
         args['range'] = '{}-{}'.format(start, min(end, total))
         r.request.url = urlunparse(url._replace(query=urlencode(args)))
-        print(r.request.url)
         r = s.send(r.request)
         yield r
 
