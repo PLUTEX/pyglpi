@@ -103,7 +103,8 @@ def build_qs(d, prefix=None):
             yield from build_qs(v, k if prefix is None else f'{prefix}[{k}]')
     else:
         try:
-            yield from ((f'{prefix}[{i}]', v) for i, v in enumerate(d))
+            for i, v in enumerate(d):
+                yield from build_qs(v, f'{prefix}[{i}]')
         except TypeError:
             yield (prefix, d)
 
