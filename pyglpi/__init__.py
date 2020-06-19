@@ -126,6 +126,8 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     params = dict(build_search(criteria))
     params.update(kwargs)
     result = glpi.search(itemtype).GET(params=params)
+    if result.status_code != requests.codes.ok:
+        raise GlpiInvalidArgument('Search failed: %s' % result.text)
     prefix_re = re.compile(r'^[^\.]+\.')
     for r in result.ranges:
         for it in r.json()['data']:
