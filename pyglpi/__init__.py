@@ -88,22 +88,24 @@ def resolve_fields(criteria, search_options):
     return _resolve_fields(criteria, rev)
 
 
-def build_search(criteria, prefix='criteria'):
+def build_qs(d, prefix=None):
     """
-    Translate list of criteria dicts into a list of GET parameters
+    Translate nested dict of query string parameters into PHP style query string
+    items
+
+    >>> list(build_qs({'arr': {'foo': 'bar', 'key': [1, 2]}}))
+    [('arr[foo]', 'bar'), ('arr[key][0]', 1), ('arr[key][1]', 2)]
     """
-    for idx, c in enumerate(criteria):
-        for k, v in c.items():
-            if k == 'criteria':
-                yield from build_search(
-                    c['criteria'],
-                    '%s[%d][criteria]' % (prefix, idx),
-                )
-            else:
-                yield (
-                    "%s[%d][%s]" % (prefix, idx, k),
-                    c[k],
-                )
+    if isinstance(d, str):
+        yield (prefix, d)
+    elif hasattr(d, 'items'):
+        for k, v in d.items():
+            yield from build_qs(v, k if prefix is None else f'{prefix}[{k}]')
+    else:
+        try:
+            yield from ((f'{prefix}[{i}]', v) for i, v in enumerate(d))
+        except TypeError:
+            yield (prefix, d)
 
 
 def search(glpi, itemtype, criteria, search_options=None, **kwargs):
@@ -126,7 +128,7 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     if not search_options:
         search_options = glpi.listSearchOptions(itemtype).GET().json()
     criteria = resolve_fields(criteria, search_options)
-    params = dict(build_search(criteria))
+    params = dict(build_qs(criteria))
     params.update(kwargs)
     result = glpi.search(itemtype).GET(params=params)
     result.raise_for_status()
