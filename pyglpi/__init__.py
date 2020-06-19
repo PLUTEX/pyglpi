@@ -40,7 +40,7 @@ def rangeiter(r):
         url = urlparse(r.request.url)
         args = parse_qs(url.query)
         args['range'] = '{}-{}'.format(start, min(end, total))
-        r.request.url = urlunparse(url._replace(query=urlencode(args)))
+        r.request.url = urlunparse(url._replace(query=urlencode(args, True)))
         r = s.send(r.request)
         yield r
 
