@@ -6,10 +6,6 @@ import requests
 from hammock import Hammock
 
 
-class GlpiInvalidArgument(Exception):
-    pass
-
-
 def rangeiter(r):
     yield r
 
@@ -171,8 +167,6 @@ class GLPI(Hammock):
 
     def _login(self, auth):
         r = self.initSession.GET(headers={'Authorization': auth})
-        if r.status_code != requests.codes.ok:
-            raise GlpiInvalidArgument('Authentication failed: %s' % r.text)
 
         try:
             j = r.json()
@@ -185,6 +179,11 @@ class GLPI(Hammock):
             pass
         else:
             self._session.headers['Session-Token'] = token
+
+    def _request(self, *args, **kwargs):
+        r = super()._request(*args, **kwargs)
+        r.raise_for_status()
+        return r
 
     def GET(self, *args, **kwargs):
         r = super().GET(*args, **kwargs)
