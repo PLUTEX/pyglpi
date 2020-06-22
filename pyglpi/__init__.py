@@ -45,7 +45,7 @@ def _resolve_fields(criteria, rev):
     """
     Internal function used by resolve_fields
     """
-    if criteria is "":
+    if criteria == "":
         return criteria
 
     try:
@@ -86,8 +86,8 @@ def resolve_fields(criteria, search_options):
 
 def build_qs(d, prefix=None):
     """
-    Translate nested dict of query string parameters into PHP style query string
-    items
+    Translate nested dict of query string parameters into PHP style query
+    string items
 
     >>> list(build_qs({'arr': {'foo': 'bar', 'key': [1, 2]}}))
     [('arr[foo]', 'bar'), ('arr[key][0]', 1), ('arr[key][1]', 2)]
