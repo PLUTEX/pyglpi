@@ -155,7 +155,7 @@ class GLPI(Hammock):
     ...     computers.extend(r.json())
     """
 
-    _range_length = 50
+    _range_length = None
 
     def __init__(self, url, app_token, user_token=None, credentials=None):
         super().__init__(url, headers={
