@@ -31,7 +31,7 @@ def rangeiter(r, size=None):
 
         if not size:
             size = end - start + 1
-        start += size
+        start = end + 1
         end += size
 
         url = urlparse(r.request.url)
