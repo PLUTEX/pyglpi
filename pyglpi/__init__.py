@@ -126,7 +126,7 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     if not search_options:
         search_options = glpi.listSearchOptions(itemtype).GET().json()
     criteria = resolve_fields(criteria, search_options)
-    params = dict(build_qs(criteria))
+    params = dict(build_qs(criteria, 'criteria'))
     params.update(kwargs)
     result = glpi.search(itemtype).GET(params=params)
     result.raise_for_status()
