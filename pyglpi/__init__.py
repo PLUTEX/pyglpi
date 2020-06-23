@@ -6,7 +6,7 @@ import requests
 from hammock import Hammock
 
 
-def rangeiter(r):
+def rangeiter(r, size=None):
     yield r
 
     if r.status_code != 206:
@@ -29,7 +29,8 @@ def rangeiter(r):
         if end == total - 1:
             break
 
-        size = end - start + 1
+        if not size:
+            size = end - start + 1
         start += size
         end += size
 
@@ -154,6 +155,8 @@ class GLPI(Hammock):
     ...     computers.extend(r.json())
     """
 
+    _range_length = 50
+
     def __init__(self, url, app_token, user_token=None, credentials=None):
         super().__init__(url, headers={
             'App-Token': app_token,
@@ -187,5 +190,5 @@ class GLPI(Hammock):
 
     def GET(self, *args, **kwargs):
         r = super().GET(*args, **kwargs)
-        r.ranges = rangeiter(r)
+        r.ranges = rangeiter(r, self._range_length)
         return r
