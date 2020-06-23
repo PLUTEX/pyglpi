@@ -76,7 +76,7 @@ def resolve_fields(criteria, search_options):
     for k, v in search_options.items():
         try:
             rev[v['uid']] = k
-            rev[v['uid'].split('.', 2)[1]] = k
+            rev[v['uid'].split('.', 1)[1]] = k
             rev[k] = k
         except (KeyError, TypeError):
             pass
