@@ -177,7 +177,7 @@ class GLPI(Hammock):
             end += self._range_length or end - start + 1
 
             url = urlparse(response.request.url)
-            args = parse_qs(url.query)
+            args = parse_qs(url.query, keep_blank_values=True)
             args['range'] = '{}-{}'.format(start, min(end, total))
             response.request.url = urlunparse(url._replace(query=urlencode(args, True)))
             response = self._session.send(response.request)
