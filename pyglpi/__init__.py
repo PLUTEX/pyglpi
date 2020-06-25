@@ -6,42 +6,6 @@ import requests
 from hammock import Hammock
 
 
-def rangeiter(r, size=None):
-    yield r
-
-    if r.status_code != 206:
-        return
-
-    if 'range' in parse_qs(urlparse(r.request.url).query):
-        return
-
-    s = requests.Session()
-
-    while True:
-        currange = re.match(
-            r'^(?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$',
-            r.headers['Content-Range']
-        )
-        start, end, total = (
-            int(currange.group(x)) for x in ('start', 'end', 'total')
-        )
-
-        if end == total - 1:
-            break
-
-        if not size:
-            size = end - start + 1
-        start = end + 1
-        end += size
-
-        url = urlparse(r.request.url)
-        args = parse_qs(url.query)
-        args['range'] = '{}-{}'.format(start, min(end, total))
-        r.request.url = urlunparse(url._replace(query=urlencode(args, True)))
-        r = s.send(r.request)
-        yield r
-
-
 def _resolve_fields(criteria, rev):
     """
     Internal function used by resolve_fields
@@ -169,11 +133,11 @@ class GLPI(Hammock):
             self._login('user_token %s' % user_token)
 
     def _login(self, auth):
-        r = self.initSession.GET(headers={'Authorization': auth})
+        response = self.initSession.GET(headers={'Authorization': auth})
 
         try:
-            j = r.json()
-            token = j['session_token']
+            data = response.json()
+            token = data['session_token']
         except ValueError:
             # decoding JSON failed
             pass
@@ -184,11 +148,42 @@ class GLPI(Hammock):
             self._session.headers['Session-Token'] = token
 
     def _request(self, *args, **kwargs):
-        r = super()._request(*args, **kwargs)
-        r.raise_for_status()
-        return r
+        response = super()._request(*args, **kwargs)
+        response.raise_for_status()
+        return response
+
+    def _rangeiter(self, response):
+        yield response
+
+        if response.status_code != 206:
+            return
+
+        if 'range' in parse_qs(urlparse(response.request.url).query):
+            return
+
+        while True:
+            currange = re.match(
+                r'^(?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$',
+                response.headers['Content-Range']
+            )
+            start, end, total = (
+                int(currange.group(x)) for x in ('start', 'end', 'total')
+            )
+
+            if end == total - 1:
+                break
+
+            start = end + 1
+            end += self._range_length or end - start + 1
+
+            url = urlparse(response.request.url)
+            args = parse_qs(url.query)
+            args['range'] = '{}-{}'.format(start, min(end, total))
+            response.request.url = urlunparse(url._replace(query=urlencode(args, True)))
+            response = self._session.send(response.request)
+            yield response
 
     def GET(self, *args, **kwargs):
-        r = super().GET(*args, **kwargs)
-        r.ranges = rangeiter(r, self._range_length)
-        return r
+        response = super().GET(*args, **kwargs)
+        response.ranges = self._rangeiter(response)
+        return response
