@@ -129,10 +129,10 @@ class GLPI(Hammock):
     ...     "https://example.org/glpi/apirest.php",
     ...     app_token,
     ...     "user_token ...",
-    ... )
+    ... )  # doctest:+SKIP
     >>> computers = []
     >>> for r in glpi.Computer.GET().ranges:
-    ...     computers.extend(r.json())
+    ...     computers.extend(r.json())  # doctest:+SKIP
     """
 
     _range_length = None

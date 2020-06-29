@@ -11,4 +11,5 @@ setup(
     install_requires=[
         'hammock',
     ],
+    testsuire='pyglpi.tests',
 )
