@@ -2,7 +2,6 @@ import re
 from base64 import b64encode
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
-import requests
 from hammock import Hammock
 
 
