@@ -7,7 +7,22 @@ from hammock import Hammock
 
 def _resolve_fields(criteria, rev):
     """
-    Internal function used by resolve_fields
+    Recursively translates field names to search option numbers
+
+    >>> criteria = [{'field': 'name', 'value': 'name'}]
+    >>> search_options = {1: {'uid': 'Computer.name'}}
+    >>> _resolve_fields(criteria, _reverse_search_options(search_options))
+    [{'field': 1, 'value': 'name'}]
+
+    :param criteria: A list of search criterion objects as defined by the GLPI
+                     API, except that the values of "field" keys are field UIDs
+                     instead of search option IDs
+    :param rev: The result of a call to the searchOptions API endpoint of an
+                appropriate itemtype, reversed by a call to
+                _reverse_search_options(), that is used to translate the UIDs
+                into search option IDs
+    :returns: The list of criterion objects with each field UID replaced by its
+              search option ID
     """
     if criteria == "":
         return criteria
@@ -23,18 +38,13 @@ def _resolve_fields(criteria, rev):
         return criteria
 
 
-def resolve_fields(criteria, search_options):
+def _reverse_search_options(search_options):
     """
-    Recursively translates field names to search option numbers
+    Reverse the search_options to map a UID to its numeric version
 
-    :param criteria: A list of search criterion objects as defined by the GLPI
-                     API, except that the values of "field" keys are field UIDs
-                     instead of search option IDs
-    :param search_options: The result of a call to the searchOptions API
-                           endpoint of an appropriate itemtype that is used to
-                           translate the UIDs into search option IDs
-    :returns: The list of criterion objects with each field UID replaced by its
-              search option ID
+    >>> search_options = {1: {'uid': 'Computer.name'}}
+    >>> _reverse_search_options(search_options)
+    {'Computer.name': 1, 'name': 1, 1: 1}
     """
     rev = {}
     for k, v in search_options.items():
@@ -45,7 +55,7 @@ def resolve_fields(criteria, search_options):
         except (KeyError, TypeError):
             pass
 
-    return _resolve_fields(criteria, rev)
+    return rev
 
 
 def build_qs(d, prefix=None):
@@ -88,9 +98,16 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     """
     if not search_options:
         search_options = glpi.listSearchOptions(itemtype).GET().json()
-    criteria = resolve_fields(criteria, search_options)
+    rev_search_options = _reverse_search_options(search_options)
+    criteria = _resolve_fields(criteria, rev_search_options)
     params = dict(build_qs(criteria, 'criteria'))
     params.update(kwargs)
+    if 'forcedisplay' in params:
+        params.update(build_qs([
+            rev_search_options[x] for x in params['forcedisplay']
+        ], 'forcedisplay'))
+        del params['forcedisplay']
+
     result = glpi.search(itemtype).GET(params=params)
     result.raise_for_status()
     prefix_re = re.compile(r'^[^\.]+\.')
