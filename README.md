@@ -28,6 +28,16 @@ glpi = pyglpi.GLPI(
 )
 ```
 
+Instead of passing the user token via argument in code, you can also set it via
+the environment variable `GLPI_USER_TOKEN` and simply omit it in the invocation:
+```python
+os.environ['GLPI_USER_TOKEN'] = '0123456789abcdef0123456789abcdef01234567'
+glpi = pyglpi.GLPI(
+    'https://glpi.example.org/apirest.php',
+    app_token,
+)
+```
+
 ### Login using username and password
 
 Use this only when the API is used with different, user-provided credentials.

@@ -1,8 +1,15 @@
+import os
 import re
 from base64 import b64encode
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
 from hammock import Hammock
+
+
+ENVVARS = {
+    'url': 'GLPI_URL',
+    'user_token': 'GLPI_USER_TOKEN',
+}
 
 
 def _resolve_field(k, v, rev):
@@ -155,7 +162,21 @@ class GLPI(Hammock):
 
     _range_length = None
 
-    def __init__(self, url, app_token, user_token=None, credentials=None):
+    def __init__(
+            self,
+            url=None,
+            app_token=None,
+            user_token=None,
+            credentials=None):
+        if not url:
+            try:
+                url = os.environ[ENVVARS['url']]
+            except KeyError:
+                raise RuntimeError(
+                    'URL to GLPI not passed via argument, '
+                    f'and {ENVVARS["url"]} is not set'
+                )
+
         super().__init__(url, headers={
             'App-Token': app_token,
             'Content-Type': 'application/json',
@@ -165,6 +186,15 @@ class GLPI(Hammock):
             self._login('Basic %s' % b64encode(':'.join(credentials)))
         elif user_token:
             self._login('user_token %s' % user_token)
+        else:
+            try:
+                self._login(
+                    'user_token %s' % os.environ[ENVVARS['user_token']]
+                )
+            except KeyError:
+                # not logging in is okay, because there are non-authenticated
+                # API endpoints.
+                pass
 
     def _login(self, auth):
         response = self.initSession.GET(headers={'Authorization': auth})
