@@ -8,6 +8,7 @@ from hammock import Hammock
 
 ENVVARS = {
     'url': 'GLPI_URL',
+    'app_token': 'GLPI_APP_TOKEN',
     'user_token': 'GLPI_USER_TOKEN',
 }
 
@@ -175,6 +176,15 @@ class GLPI(Hammock):
                 raise RuntimeError(
                     'URL to GLPI not passed via argument, '
                     f'and {ENVVARS["url"]} is not set'
+                )
+
+        if not app_token:
+            try:
+                app_token = os.environ[ENVVARS['app_token']]
+            except KeyError:
+                raise RuntimeError(
+                    'app_token not passed via argument, '
+                    f'and {ENVVARS["app_token"]} is not set'
                 )
 
         super().__init__(url, headers={

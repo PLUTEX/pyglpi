@@ -12,13 +12,30 @@ between readable and persistent UIDs and the IDs used by the API.
 Register the application you are using the API from in your GLPI instance under
 Setup → General → API to receive the `app_token`.
 
+## Invocation
+
+The most basic invocation looks like this:
+```python
+glpi = pyglpi.GLPI()
+```
+This assumes that the URL to your GLPI instance is stored in the environment
+variable `GLPI_URL`, and your app token in `GLPI_APP_TOKEN`.
+
+You can also pass them via arguments:
+```python
+glpi = pyglpi.GLPI(
+    url='https://glpi.example.org/apirest.php',
+    app_token='...',
+)
+```
+
 ## Login
 
 There are several ways to login, that are tried in this order:
 
 1. Login via user credentials
 2. Login via user token
-    1. passed viy code
+    1. passed via code
     2. passed via environment variable
 3. Unauthenticated usage
 
@@ -28,8 +45,8 @@ Use this only when the API is used with different, user-provided credentials.
 
 ```python
 glpi = pyglpi.GLPI(
-    'https://glpi.example.org/apirest.php',
-    app_token,
+    url='https://glpi.example.org/apirest.php',
+    app_token='...',
     credentials=('username', 'password'),
 )
 ```
@@ -42,8 +59,8 @@ to authenticate to GLPI if you have to store the credentials.
 You can then login like this:
 ```python
 glpi = pyglpi.GLPI(
-    'https://glpi.example.org/apirest.php',
-    app_token,
+    url='https://glpi.example.org/apirest.php',
+    app_token='...',
     user_token='0123456789abcdef0123456789abcdef01234567',
 )
 ```
@@ -53,8 +70,8 @@ the environment variable `GLPI_USER_TOKEN` and simply omit it in the invocation:
 ```python
 os.environ['GLPI_USER_TOKEN'] = '0123456789abcdef0123456789abcdef01234567'
 glpi = pyglpi.GLPI(
-    'https://glpi.example.org/apirest.php',
-    app_token,
+    url='https://glpi.example.org/apirest.php',
+    app_token='...',
 )
 ```
 
