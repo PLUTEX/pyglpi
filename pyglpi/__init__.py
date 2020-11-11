@@ -130,7 +130,7 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     result.raise_for_status()
     prefix_re = re.compile(r'^[^\.]+\.')
     for r in result.ranges:
-        for it in r.json()['data']:
+        for it in r.json().get('data', ()):
             yield {
                 prefix_re.sub('', search_options.get(k, {}).get('uid', k)): v
                 for k, v in it.items()
