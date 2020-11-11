@@ -29,6 +29,9 @@ glpi = pyglpi.GLPI(
 )
 ```
 
+For all following examples, we will assume environment variable usage where
+applicable.
+
 ## Login
 
 There are several ways to login, that are tried in this order:
@@ -45,8 +48,6 @@ Use this only when the API is used with different, user-provided credentials.
 
 ```python
 glpi = pyglpi.GLPI(
-    url='https://glpi.example.org/apirest.php',
-    app_token='...',
     credentials=('username', 'password'),
 )
 ```
@@ -59,8 +60,6 @@ to authenticate to GLPI if you have to store the credentials.
 You can then login like this:
 ```python
 glpi = pyglpi.GLPI(
-    url='https://glpi.example.org/apirest.php',
-    app_token='...',
     user_token='0123456789abcdef0123456789abcdef01234567',
 )
 ```
@@ -69,10 +68,7 @@ Instead of passing the user token via argument in code, you can also set it via
 the environment variable `GLPI_USER_TOKEN` and simply omit it in the invocation:
 ```python
 os.environ['GLPI_USER_TOKEN'] = '0123456789abcdef0123456789abcdef01234567'
-glpi = pyglpi.GLPI(
-    url='https://glpi.example.org/apirest.php',
-    app_token='...',
-)
+glpi = pyglpi.GLPI()
 ```
 
 ### No login
