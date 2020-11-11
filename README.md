@@ -7,12 +7,32 @@ between readable and persistent UIDs and the IDs used by the API.
 [GLPI REST API]: https://github.com/glpi-project/glpi/blob/9.4/bugfixes/apirest.md
 [Hammock]: https://github.com/kadirpekel/hammock
 
-## Usage
-
-### Setup
+## Registering your application with GLPI
 
 Register the application you are using the API from in your GLPI instance under
 Setup → General → API to receive the `app_token`.
+
+## Login
+
+There are several ways to login, that are tried in this order:
+
+1. Login via user credentials
+2. Login via user token
+    1. passed viy code
+    2. passed via environment variable
+3. Unauthenticated usage
+
+### Login via user credentials
+
+Use this only when the API is used with different, user-provided credentials.
+
+```python
+glpi = pyglpi.GLPI(
+    'https://glpi.example.org/apirest.php',
+    app_token,
+    credentials=('username', 'password'),
+)
+```
 
 ### Login using user token
 
@@ -38,19 +58,12 @@ glpi = pyglpi.GLPI(
 )
 ```
 
-### Login using username and password
+### No login
 
-Use this only when the API is used with different, user-provided credentials.
+There are very few API endpoints that don't require login, so the code only
+makes unauthenticated calls if none of the above methods were used.
 
-```python
-glpi = pyglpi.GLPI(
-    'https://glpi.example.org/apirest.php',
-    app_token,
-    credentials=('username', 'password'),
-)
-```
-
-### Calling API methods directly / Paged replies
+## Calling API methods directly / Paged replies
 
 All API endpoints are callable as usual with [Hammock]. However, for GET
 requests, the special `ranges` attribute is added to the response to aid in
@@ -62,7 +75,7 @@ for result_range in glpi.Computer.GET().ranges:
         print(item['name'])
 ```
 
-### Search
+## Search
 
 There is a special helper function to convert the search criteria from a python
 datastructure to the correct GET parameters, on-the-fly translating field names
@@ -89,7 +102,7 @@ of items (see above).
 Also note that ranges are automatically iterated through inside the helper
 function.
 
-#### Search for AllAssets
+### Search for AllAssets
 
 The API supports searching for all kinds of assets in a single query. However,
 because AllAssets cannot be passed to the `searchOptions` endpoint, we have to
