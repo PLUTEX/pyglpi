@@ -5,6 +5,25 @@ from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 from hammock import Hammock
 
 
+def _resolve_field(k, v, rev):
+    """
+    Translate a field name to its search option number if not a number already
+
+    >>> search_options = {1: {'uid': 'Computer.name'}}
+    >>> _resolve_field('field', 'name', _reverse_search_options(search_options))
+    1
+    >>> _resolve_field('field', 1, _reverse_search_options(search_options))
+    1
+    """
+    if k == 'field':
+        if isinstance(v, int):
+            return v
+        else:
+            return rev[v]
+    else:
+        return _resolve_fields(v, rev)
+
+
 def _resolve_fields(criteria, rev):
     """
     Recursively translates field names to search option numbers
@@ -30,8 +49,7 @@ def _resolve_fields(criteria, rev):
     try:
         return [
             {
-                k: rev[v] if k == 'field' else _resolve_fields(v, rev)
-                for k, v in it.items()
+                k: _resolve_field(k, v, rev) for k, v in it.items()
             } for it in criteria
         ]
     except (TypeError, AttributeError):
