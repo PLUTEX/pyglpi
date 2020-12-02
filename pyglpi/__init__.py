@@ -13,6 +13,19 @@ ENVVARS = {
 }
 
 
+class APIError(Exception):
+    def __init__(self, url, response_code, response_text=None):
+        self.url = url
+        self.response_code = response_code
+        self.response_text = response_text
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(url={self.url!r}, response_code={self.response_code!r})'
+
+    def __str__(self):
+        return f'GLPI API error while accessing {self.url}: {self.response_text} ({self.response_code})'
+
+
 def _resolve_field(k, v, rev):
     """
     Translate a field name to its search option number if not a number already
@@ -223,7 +236,11 @@ class GLPI(Hammock):
 
     def _request(self, *args, **kwargs):
         response = super()._request(*args, **kwargs)
-        response.raise_for_status()
+        if not response.ok:
+            try:
+                raise APIError(response.request.url, *response.json())
+            except ValueError:
+                response.raise_for_status()
         return response
 
     def _rangeiter(self, response):
