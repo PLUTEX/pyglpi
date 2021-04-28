@@ -84,7 +84,7 @@ iterating through paged responses:
 
 ```python
 for result_range in glpi.Computer.GET().ranges:
-    for item in result_range:
+    for item in result_range.json():
         print(item['name'])
 ```
 
