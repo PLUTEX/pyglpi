@@ -20,10 +20,18 @@ class APIError(Exception):
         self.response_text = response_text
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(url={self.url!r}, response_code={self.response_code!r})'
+        return '%s(url=%r, response_code=%r)' % (
+            self.__class__.__name__,
+            self.url,
+            self.response_code,
+        )
 
     def __str__(self):
-        return f'GLPI API error while accessing {self.url}: {self.response_text} ({self.response_code})'
+        return 'GLPI API error while accessing %s: %s (%r)' % (
+            self.url,
+            self.response_text,
+            self.response_code,
+        )
 
 
 def _resolve_field(k, v, rev):
@@ -109,11 +117,11 @@ def build_qs(d, prefix=None):
         yield (prefix, d)
     elif hasattr(d, 'items'):
         for k, v in d.items():
-            yield from build_qs(v, k if prefix is None else f'{prefix}[{k}]')
+            yield from build_qs(v, k if prefix is None else '%s[%s]' % (prefix, k))
     else:
         try:
             for i, v in enumerate(d):
-                yield from build_qs(v, f'{prefix}[{i}]')
+                yield from build_qs(v, '%s[%d]' % (prefix, i))
         except TypeError:
             yield (prefix, d)
 
@@ -143,7 +151,7 @@ def search(glpi, itemtype, criteria, search_options=None, **kwargs):
     params.update(kwargs)
     if 'forcedisplay' in params:
         params.update(build_qs([
-            rev_search_options[x] for x in params['forcedisplay']
+            rev_search_options[x] if type(x) != int else x for x in params['forcedisplay']
         ], 'forcedisplay'))
         del params['forcedisplay']
 
@@ -188,7 +196,7 @@ class GLPI(Hammock):
             except KeyError:
                 raise RuntimeError(
                     'URL to GLPI not passed via argument, '
-                    f'and {ENVVARS["url"]} is not set'
+                    'and %s is not set' % ENVVARS["url"]
                 )
 
         if not app_token:
@@ -197,7 +205,7 @@ class GLPI(Hammock):
             except KeyError:
                 raise RuntimeError(
                     'app_token not passed via argument, '
-                    f'and {ENVVARS["app_token"]} is not set'
+                    'and %s is not set' % ENVVARS["app_token"]
                 )
 
         super().__init__(url, headers={
