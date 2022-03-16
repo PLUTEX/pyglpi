@@ -13,16 +13,22 @@ parser.add_argument(
 )
 parser.add_argument(
     '--columns',
-    help='Columns to show (comma-separated)',
-    default='otherserial,name',
+    help='Limit columns to show (comma-separated)',
 )
 
 args = parser.parse_args()
+if args.columns:
+    columns = args.columns.split(',')
+else:
+    columns = None
 glpi_api = GLPI()
 
 out = []
-for result in glpi_api(args.item_type).GET().ranges:
-    out.extend([item[col] for col in args.columns.split(',')] for item in result.json())
+for result in glpi_api(args.item_type).GET(params={'expand_dropdowns': 'true'}).ranges:
+    parsed = result.json()
+    if not columns:
+        columns = parsed[0].keys()
+    out.extend([item[col] for col in columns] for item in result.json())
 
 if args.format == 'json':
     import json
@@ -33,4 +39,5 @@ else:
         delimiter=',' if args.format == 'csv' else '\t',
         quoting=csv.QUOTE_MINIMAL,
     )
+    writer.writerow(columns)
     writer.writerows(out)
