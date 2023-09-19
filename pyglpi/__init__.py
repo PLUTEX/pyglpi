@@ -273,12 +273,7 @@ class GLPI(Hammock):
                 break
 
             length = self._range_length or end - start + 1
-            # A bug in GLPI causes a non-ranged query to contain one item less
-            # than a ranged query, while returning the same Content-Range
-            # header. So when this is the first and thus non-ranged (see the
-            # "if 'range' ..." above) query, we have to start the second query
-            # one item earlier than usual
-            start = end + 1 if start > 0 else end
+            start = end + 1
             end += length
 
             url = urlparse(response.request.url)
